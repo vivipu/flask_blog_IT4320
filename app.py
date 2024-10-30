@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect, abo
 # make a Flask application object called app
 app = Flask(__name__)
 app.config["DEBUG"] = True
+app.config["SECRET_KEY"] = "your secret key"
 
 
 
@@ -32,5 +33,27 @@ def index():
 
 # route to create a post
 @app.route("/create/", methods=("GET", "POST"))
+def create():
+    #POST or GET
+    if request.method == "POST":
+        #get title and content
+        title = request.form["title"]
+        content = request.form["content"]
+
+        #display error if no title/content
+        if not title:
+            flash("Title is required!")
+        elif not content:
+            flash ("Content is required!")
+
+        else: #insert data into database
+            conn=get_db_connection()
+            conn.execute("INSERT INTO posts (title, content) VALUES (?, ?)", (title, content))
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for("index"))
+
+    return render_template("create.html")
 
 app.run()
